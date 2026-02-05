@@ -17,7 +17,8 @@ from simulator import RamseySimulator
 class Dataset:
     X_classical_z: np.ndarray    # [N, M] using p0(tk)
     X_classical_xyz: np.ndarray  # [N, 3M] using <X>,<Y>,<Z> at each tk
-    X_quantum: np.ndarray        # [N, 3M] from density matrix Bloch
+    # X_quantum: np.ndarray      # [N, 3M] from density matrix Bloch
+    R_quantum: np.ndarray        # [N, M, 2, 2]
     y_B: np.ndarray              # [N]
 
 
@@ -37,7 +38,8 @@ def generate_dataset(
 
     Xz = np.zeros((n_samples, M), dtype=np.float64)
     Xxyz = np.zeros((n_samples, 3 * M), dtype=np.float64)
-    Xq = np.zeros((n_samples, 3 * M), dtype=np.float64)
+    #Xq = np.zeros((n_samples, 3 * M), dtype=np.float64)
+    Rq = np.zeros((n_samples, M, 2, 2), dtype=np.complex128)
     y = np.zeros((n_samples,), dtype=np.float64)
 
     times_s = [t * 1e-6 for t in times_us]
@@ -56,7 +58,12 @@ def generate_dataset(
 
             # --- Quantum Bloch from rho (same run as Z-only circuit) ---
             # Note: rho here corresponds to state right before measurement in the Z-variant circuit.
-            Xq[i, 3 * k : 3 * k + 3] = bloch_from_density_matrix(out_z.density_matrix)
+            # Xq[i, 3 * k : 3 * k + 3] = bloch_from_density_matrix(out_z.density_matrix)
+            # rho = out_z.density_matrix
+            # Rq[i, k, :, :] = rho
+            rho_c = np.asarray(out_z.density_matrix, dtype=np.complex128)
+            rho_c = 0.5 * (rho_c + rho_c.conj().T)
+            Rq[i, k, :, :] = rho_c
 
             # --- Classical XYZ enriched measurements ---
             # We run extra circuits for X and Y measurements (still classical data).
@@ -73,4 +80,4 @@ def generate_dataset(
 
             Xxyz[i, 3 * k : 3 * k + 3] = np.array([ex, ey, ez], dtype=np.float64)
 
-    return Dataset(X_classical_z=Xz, X_classical_xyz=Xxyz, X_quantum=Xq, y_B=y)
+    return Dataset(X_classical_z=Xz, X_classical_xyz=Xxyz, R_quantum=Rq, y_B=y)

@@ -249,3 +249,34 @@ shots= 128 | mse_c=1.21e-14 | mse_q=6.78e-23\
 * Coherence across evolution times
 
 The gap shrinks or disappears when classical measurements are enriched (e.g., X/Y/Z bases), confirming that the advantage arises from measurement-induced information loss.
+
+---
+
+## New reviewer-feedback experiments
+
+The experiment now includes additional baselines and fairness controls:
+
+- **Tomography-limited quantum access** (`R_tomo`): finite-shot XYZ estimates are used to reconstruct \
+  \(\hat\rho(t_k)=\frac{1}{2}(I+\langle X\rangle\sigma_x+\langle Y\rangle\sigma_y+\langle Z\rangle\sigma_z)\), projected to PSD + trace-1.
+- **Budget-matched mode** (`match_measurement_budget=True`):
+  - Z-only uses all `shots` in Z,
+  - XYZ and tomo split `shots` across X/Y/Z.
+- **Classical nonlinear baselines** on Z, XYZ, and Bloch features:
+  - `RBF-KRR` (scikit-learn `KernelRidge`)
+  - `MLPRegressor`
+- **Information-matched classical upper bound**:
+  - Bloch-vector features concatenated across times and trained with the same nonlinear models.
+- **T2 sensitivity sweep** over `T2 in {20, 50, 100, 200} µs` with fixed-shot summary plots.
+
+### How to run
+
+From repo root:
+
+```bash
+python nvqml/main_magnetometry.py
+```
+
+Outputs now include:
+
+- `rmse_vs_shots.png` (legacy filename retained; new curves added)
+- `rmse_vs_t2_fixed_shots.png` (new sensitivity plot)
